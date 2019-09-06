@@ -130,6 +130,51 @@ func (m *MySQLUtil) SimpleQuery(sql string, args []interface{}, result ...interf
 	return cnt, nil
 }
 
+
+func (m *MySQLUtil) AllNoArgQuery(sql string, resultlist []interface{}, result ...interface{}) (int64, error) {
+// func (authdao *AuthDao) GetUserInfo() ([]*structs.UserInfo ,error) {
+	// resultlist := []interface{}
+	if m.initialized == false {
+		log.Errorln("MySQL 还未初始化成功")
+		return -1, ce.DBError()
+	}
+	// resultlist := []*structs.UserInfo{}
+	tx := m.GetTx()
+	if tx == nil {
+		log.Errorln("MySQL 获取TX失败")
+		return -1, ce.DBError()
+	}
+	stmt, err := tx.Prepare(sql)
+	if err != nil {
+		tx.Rollback()
+		log.Errorln("MySQL 获取TX失败: ",err.Error())
+		return -1, ce.DBError()
+	}
+	rows, err := stmt.Query()
+	if err != nil {
+		log.Errorln("MySQL 查询失败: ",err.Error())
+		stmt.Close()
+		return -1, ce.DBError()
+	}
+	for rows.Next() {
+		// result := &structs.UserInfo{}
+		err := rows.Scan(result...)
+		if err != nil {
+			log.Errorln("MySQL 查询失败: ",err.Error())
+			rows.Close()
+			stmt.Close()
+			tx.Rollback()
+			return -1,ce.DBError()
+		} else {
+			resultlist = append(resultlist, result)
+		}
+	}
+	rows.Close()
+	stmt.Close()
+	tx.Commit()
+	return 1, nil
+}
+
 func (m *MySQLUtil) SimpleInsert(sql string, args ...interface{}) (int, error) {
 	if m.initialized == false {
 		log.Errorln("MySQL 还未初始化")
@@ -162,7 +207,6 @@ func (m *MySQLUtil) SimpleInsert(sql string, args ...interface{}) (int, error) {
 	}
 	return int(InsertID), nil
 }
-
 
 func (m *MySQLUtil) SimpleUpdate(sql string, args ...interface{}) (int, error) {
 	if m.initialized == false {

@@ -5,55 +5,18 @@ import (
 	"util/config"
 	"util/log"
 	"util/mysql"
+	
 	"fmt"
-	//"github.com/astaxie/beego"
-	//"net/http"
 	"service/http_service"
-	//"service/salt"
-	//"service/mydb"
-	//"github.com/robfig/cron"
+	"service/crontab"
+	"time"
+	"runtime"
+	"math/rand"
 )
 
-
-type TestJob struct {
-}
-
-func (this TestJob)Run() {
-    fmt.Println("testJob1...")
-}
-
-type Test2Job struct {
-}
-
-func (this Test2Job)Run() {
-    fmt.Println("testJob2...")
-}
-
 func main(){
-
-
-    //c := cron.New()
-
-    //AddFunc
-    //spec := "*/5 * * * * ?"
-
-
-    //AddJob方法
-    /*c.AddJob(spec, TestJob{})
-    c.AddJob(spec, Test2Job{})*/
-
-    //启动计划任务
-    /*c.Start()
-
-    //关闭着计划任务, 但是不能关闭已经在执行中的任务.
-	defer c.Stop()*/
-	
-
-	
-	//fmt.Println(aaa)
-
-
-
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	var confPath = flag.String("confPath", "conf/default.ini","load conf file")
 	flag.Parse()
@@ -62,21 +25,26 @@ func main(){
 	config.GlobalConf.CfgInit(*confPath)
 	fmt.Println("配置文件初始化完成....")
 
+
 	//日志初始化
 	log.InitLog()
 	fmt.Println("日志文件初始化完成....")
-
-	//
-	//salt.GetToken()
-	//aaaa := salt.ModelExec("hello.haha","local","*","fuck")
-	//fmt.Println(aaaa)
-	
 
 	//DB初始化
 	mysql.DB.DbInit()
 	fmt.Println("数据库初始化完成....")
 
-	
+	// resultlist, _ := cronctrl.GetCronTaskList()
+	// fmt.Println(resultlist)
+
+	//调度任务执行
+	crontab.GlobalCronTaskList.CronInit()
+
+	//内部事务调度，如数据库更新等等
+	crontab.GlobalInternalCronTaskList.CronInit()
+
+
+	//启动HTTP
 	fmt.Println("开始启动HTTP服务")
 	
 	router := http_service.InitRouter()

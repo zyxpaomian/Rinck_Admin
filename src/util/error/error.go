@@ -19,3 +19,15 @@ func DBError() *MyError {
 func AuthError() *MyError {
 	return New("用户认证错误")
 }
+
+func GetCronError() *MyError {
+	return New("获取计划任务失败")
+}
+
+func GetSyncTaskError() *MyError {
+	return New("获取同步任务列表失败")
+}
+
+func GetRsyncTaskError() *MyError {
+	return New("获取异步任务列表失败")
+}

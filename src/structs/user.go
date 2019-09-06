@@ -8,3 +8,10 @@ type UserInfo struct {
 	Group string `json:group`
 	CreateTime string `json:createtime`
 }
+
+type RoleInfo struct {
+	Rolename string `json:rolename`
+	Roleid int64 `json:Roleid`
+}
+
+
