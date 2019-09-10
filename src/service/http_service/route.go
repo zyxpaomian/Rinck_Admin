@@ -36,6 +36,7 @@ func InitRouter() *gin.Engine {
 	router.GET("/api/v1/task/getsynctask",GetSyncTaskList)
 	router.GET("/api/v1/task/getrsynctask",GetRsyncTaskList)
 	router.GET("/api/v1/task/getrsynctaskrecords",GetRsyncTaskRecords)
+	router.POST("/api/v1/task/getrsynctaskresults",GetRsyncTaskResults)
 	router.POST("/api/v1/task/addtask",AddSyncTask)
 	router.POST("/api/v1/task/addtaskrecord",AddSyncTaskRecord)
 	return router

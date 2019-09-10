@@ -20,6 +20,7 @@ func (i *InternalCronTaskList) CronInit() {
 	i.InternalCrontabtask.AddFunc("*/10 * * * * * ", func() {
 		taskctrl.UpdateRsyncUnfinishRecords()
 	})
+
 	i.InternalCrontabtask.Start()
 }
 

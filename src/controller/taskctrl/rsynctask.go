@@ -5,7 +5,6 @@ import (
 	"util/log"
 	ce "util/error"
 	"structs"
-	// "fmt"
 	"time"
 	"util/config"
 	"net/http"
@@ -13,7 +12,6 @@ import (
     "encoding/json"
 	"bytes"
 	"github.com/bitly/go-simplejson"
-	// "unsafe"
 )
 
 
@@ -35,6 +33,84 @@ func GetRsyncTaskRecords() ([]*structs.TaskRecord, error){
 		return nil, ce.GetRsyncTaskError()
 	}
 	return tasklist, nil
+}
+
+
+func GetRsyncTaskResult(resultid string) ([]*structs.TaskResult, error ){
+	taskresultlist := []*structs.TaskResult{}
+	url := config.GlobalConf.GetStr("api", "server_task_result_api")
+	data := make(map[string]interface{})
+	data["resultid"] = resultid
+
+	bytesData, err := json.Marshal(data)
+	if err != nil {
+		log.Errorln("获取任务执行结果失败")
+		return nil, ce.GetRsyncTaskResult()
+	}
+	reader := bytes.NewReader(bytesData)
+
+	request, err := http.NewRequest("POST", url, reader)
+	if err != nil {
+		log.Errorln("获取任务执行结果失败")
+		return nil, ce.GetRsyncTaskResult()
+	}
+	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
+	client := http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Errorln("获取任务执行结果失败")
+		return nil, ce.GetRsyncTaskResult()
+	}
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Errorln("获取任务执行结果失败")
+		return nil, ce.GetRsyncTaskResult()
+	}
+	resultjson, err := simplejson.NewJson([]byte(string(respBytes)))
+	if err != nil {
+		log.Errorln("获取任务执行结果JSON失败")
+		return nil, ce.GetRsyncTaskResult()
+	}
+
+	failedrows, _ := resultjson.Get("message").Get("failed").Array()
+	for _, failrow := range failedrows {
+		taskresult := &structs.TaskResult{}
+		rowdata := failrow.(map[string]interface{})
+		taskresult.Taskip = rowdata["host"].(string)
+		taskresult.Taskoutput = rowdata["msg"].(string)
+		taskresult.Celeryid = resultid
+		taskresult.Taskstatus = "failed"
+		taskresultlist = append(taskresultlist,taskresult)
+	}
+
+
+	successrows, _ := resultjson.Get("message").Get("success").Array()
+	for _, successrow := range successrows {
+		taskresult := &structs.TaskResult{}
+		rowdata := successrow.(map[string]interface{})
+		taskresult.Taskip = rowdata["host"].(string)
+		taskresult.Taskoutput = rowdata["msg"].(string)
+		taskresult.Celeryid = resultid
+		taskresult.Taskstatus = "success"
+		taskresultlist = append(taskresultlist,taskresult)
+
+	}
+
+
+	unreachablerows, _ := resultjson.Get("message").Get("unreachable").Array()
+	for _, unreachablerow := range unreachablerows {
+		taskresult := &structs.TaskResult{}
+		rowdata := unreachablerow.(map[string]interface{})
+		taskresult.Taskip = rowdata["host"].(string)
+		taskresult.Taskoutput = rowdata["msg"].(string)
+		taskresult.Celeryid = resultid
+		taskresult.Taskstatus = "unreachable"
+		taskresultlist = append(taskresultlist,taskresult)
+	}
+
+	return taskresultlist, nil
+
+
 }
 
 func UpdateRsyncUnfinishRecords() {
@@ -91,18 +167,7 @@ func UpdateRsyncUnfinishRecords() {
 				if err != nil || updateid == -1{
 					log.Errorln("更新task纪录失败")
 				}
-			}
-			//fmt.Println(resultstr)
-
-
-			// fmt.Println(resultjson.Get("message").MustString())
-			//fmt.Println(resultjson)
-			//personArr, err := js.Get("person").Array()
-			//fmt.Println(len(personArr))
-			//byte数组直接转成string，优化内存
-			// str := (*string)(unsafe.Pointer(&respBytes))
-			// fmt.Println(*str)
-			
+			}		
 		}
     }
 }

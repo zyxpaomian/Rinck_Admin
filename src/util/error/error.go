@@ -31,3 +31,6 @@ func GetSyncTaskError() *MyError {
 func GetRsyncTaskError() *MyError {
 	return New("获取异步任务列表失败")
 }
+func GetRsyncTaskResult() *MyError {
+	return New("获取异步任务结果失败")
+}

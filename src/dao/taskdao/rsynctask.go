@@ -12,7 +12,7 @@ type RsyncDao struct {
 
 var RsyncTaskDao RsyncDao
 
-func (rsyncdao *RsyncDao) GetAllRsyncTasks() ([]*structs.RsyncTask ,error) {
+func (rsyncdao *RsyncDao) GetAllRsyncTasks() ([]*structs.RsyncTask, error) {
 	resultlist := []*structs.RsyncTask{}
 	tx := mysql.DB.GetTx()
 	if tx == nil {

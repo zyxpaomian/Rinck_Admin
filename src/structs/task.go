@@ -24,3 +24,9 @@ type TaskRecord struct {
 	Exectype string `json:exectype`
 }
 
+type TaskResult struct {
+	Celeryid string `json:celeryid`
+	Taskstatus string `json:taskstatus`
+	Taskoutput string `json:taskoutput`
+	Taskip string `json:taskip`
+}

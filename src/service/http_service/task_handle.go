@@ -55,6 +55,33 @@ func GetRsyncTaskRecords(c *gin.Context) {
 	}
 }
 
+
+func GetRsyncTaskResults(c *gin.Context) {
+	type reqContent struct {
+		Resultid string `json:"resultid" binding:"required"`
+	}
+
+	var r reqContent
+	err := c.ShouldBindJSON(&r)
+
+	if err == nil {
+		resultid := r.Resultid
+		resultlist, _ := taskctrl.GetRsyncTaskResult(resultid)				
+		if resultlist == nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"Status":"Failed",
+				"Msg":"获取异步任务结果失败",
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"Status":"Success",
+				"Msg": resultlist,
+			})
+		}
+	}
+}
+
+
 func AddSyncTask(c *gin.Context) {
 	type reqContent struct {
 		Taskname string `json:"taskname" binding:"required"`
